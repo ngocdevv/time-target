@@ -1,4 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -68,18 +69,42 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
             <View style={styles.arrowWrapper}>
                 <FontAwesome name="chevron-up" size={ArrowIconSize} color="#ffffff" />
             </View>
-            <Animated.FlatList
-                onScroll={onScroll}
-                decelerationRate="fast"
-                snapToAlignment="center"
-                snapToOffsets={DurationSnapOffsets}
-                contentContainerStyle={styles.scrollViewContent}
-                showsVerticalScrollIndicator={false}
-                style={styles.list}
-                data={DurationLabels}
-                renderItem={renderItem}
-                disableIntervalMomentum
-            />
+            <View>
+
+                <Animated.FlatList
+                    onScroll={onScroll}
+                    decelerationRate="fast"
+                    snapToAlignment="center"
+                    snapToOffsets={DurationSnapOffsets}
+                    contentContainerStyle={styles.scrollViewContent}
+                    showsVerticalScrollIndicator={false}
+                    style={styles.list}
+                    data={DurationLabels}
+                    renderItem={renderItem}
+                    disableIntervalMomentum
+                />
+                <LinearGradient
+                    colors={['#000000', 'transparent']}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: 16,
+                    }}
+                />
+                <LinearGradient
+                    colors={['transparent', '#000000']}
+                    style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 16,
+                    }}
+                />
+
+            </View>
             <View style={styles.arrowWrapper}>
                 <FontAwesome name="chevron-down" size={ArrowIconSize} color="#ffffff" />
             </View>

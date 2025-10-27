@@ -219,7 +219,7 @@ export const CircularDraggableSlider = forwardRef<
             }}
             style={{
               position: 'absolute',
-              height: radius * 2 + 30,
+              height: radius * 2 + 40,
               width: radius,
               top: -(WindowHeight / 2 - radius - 16)
             }}
