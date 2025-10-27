@@ -3,10 +3,26 @@ import { StyleSheet, View } from 'react-native';
 import { useRef } from 'react';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useSharedValue } from 'react-native-reanimated';
+import { useDerivedValue, useSharedValue } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomTab } from './src/components/bottom-tab';
 import { CircularDraggableSlider, CircularDraggableSliderRefType } from './src/components/circle-time';
+import { TimeRange } from './src/components/time-range';
+
+// Handle timezone offset to ensure correct time display
+// Note: This is a simple implementation. For production, consider using a proper timezone library
+const TimezoneOffsetMs = -new Date().getTimezoneOffset() * 60000;
+
+/**
+ * Generate an array of time slots for the time range selector
+ * Creates 20 time slots starting from 13:00 with 30-minute intervals
+ */
+const dates = new Array(20).fill(0).map((_, index) => {
+  const hour = Math.floor(index / 2) + 13;
+  const minutes = index % 2 === 0 ? 0 : 30;
+  return new Date(2025, 0, 1, hour, minutes);
+});
+
 
 
 const LinesAmount = 200;
@@ -16,17 +32,18 @@ export default function App() {
   const previousTick = useSharedValue(0);
 
   const circularSliderRef = useRef<CircularDraggableSliderRefType>(null);
+  const date = useSharedValue(dates[0].getTime());
+
+  const clockDate = useDerivedValue(() => {
+    'worklet';
+    return date.value + TimezoneOffsetMs;
+  });
 
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
           <View style={styles.container}>
-            <View
-              style={{
-                marginBottom: 256,
-              }}>
-            </View>
             <CircularDraggableSlider
               ref={circularSliderRef}
               bigLineIndexOffset={10}
@@ -51,6 +68,13 @@ export default function App() {
 
                 // Bind the progress value to the animated number
                 animatedNumber.value = sliderProgress;
+              }}
+            />
+            <TimeRange
+              dates={dates}
+              onDateChange={updatedDate => {
+                'worklet';
+                date.value = updatedDate;
               }}
             />
           </View>
@@ -78,9 +102,9 @@ const styles = StyleSheet.create({
     right: 32,
   },
   container: {
+    flexDirection: "row",
     alignItems: 'center',
     backgroundColor: '#000',
     flex: 1,
-    justifyContent: 'center',
   },
 });
