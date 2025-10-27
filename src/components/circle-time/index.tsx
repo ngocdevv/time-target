@@ -32,6 +32,7 @@ export type DraggableSliderProps = {
 
 const { height: WindowHeight } = Dimensions.get('window');
 const radius = 200;
+const HOUR_LABELS_AMOUNT = 10;
 
 export type CircularDraggableSliderRefType = {
   resetTimer: () => void;
@@ -71,6 +72,33 @@ export const CircularDraggableSlider = forwardRef<
         [offset, 2 * Math.PI + offset],
       );
     }, [listWidth]);
+
+    const overlayStyle = useAnimatedStyle(() => {
+      const angleStep = (2 * Math.PI) / linesAmount;
+      const hourIndexRatio = progressRadiants.value / (angleStep * bigLineIndexOffset);
+      const boundedHourIndex = Math.max(
+        1,
+        Math.min(HOUR_LABELS_AMOUNT, Math.round(hourIndexRatio)),
+      );
+      const requestedTickIndex = boundedHourIndex * bigLineIndexOffset;
+      if (requestedTickIndex > linesAmount) {
+        return { opacity: 0 };
+      }
+
+      const targetTickIndex = Math.min(linesAmount - 1, requestedTickIndex);
+      const labelRadius = radius + LABEL_RADIUS_OFFSET;
+      const angle = angleStep * targetTickIndex - progressRadiants.value;
+      const x = Math.cos(angle) * labelRadius;
+      const y = Math.sin(angle) * labelRadius;
+
+      return {
+        opacity: 1,
+        transform: [
+          { translateX: x - LABEL_WIDTH / 2 },
+          { translateY: y - LABEL_HEIGHT / 2 },
+        ],
+      };
+    }, [bigLineIndexOffset, linesAmount, radius]);
 
     useAnimatedReaction(
       () => selectedDuration?.value ?? null,
@@ -144,7 +172,7 @@ export const CircularDraggableSlider = forwardRef<
                 />
               );
             })}
-            {new Array(10).fill(0).map((_, hourIndex) => {
+            {new Array(HOUR_LABELS_AMOUNT).fill(0).map((_, hourIndex) => {
               const label = `${hourIndex + 1} hr`;
               const tickIndex = (hourIndex + 1) * bigLineIndexOffset;
               if (tickIndex > linesAmount) {
@@ -162,6 +190,26 @@ export const CircularDraggableSlider = forwardRef<
                 />
               );
             })}
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.hourLabelOverlay, overlayStyle]}
+            >
+              <LinearGradient
+                start={{
+                  x: 0,
+                  y: 0
+                }}
+                end={{
+                  x: 0,
+                  y: 1
+                }}
+                colors={['transparent','#00000080', '#000000', '#000000', '#000000' , '#00000080', 'transparent']}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                }}
+              />
+            </Animated.View>
           </Animated.View>
           <LinearGradient
             colors={['#000000', '#000000', '#000000', '#00000070', 'transparent']}
@@ -255,6 +303,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     left: 10
+  },
+  hourLabelOverlay: {
+    position: 'absolute',
+    width: LABEL_WIDTH,
+    height: LABEL_HEIGHT,
+    backgroundColor: '#000',
+    borderRadius: LABEL_HEIGHT / 2,
+    zIndex: 1,
+    left: 10,
   },
   hourLabelText: {
     color: '#d8d8d8',
