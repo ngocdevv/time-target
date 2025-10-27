@@ -10,8 +10,7 @@ import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
-  useSharedValue,
-  withTiming,
+  useSharedValue
 } from 'react-native-reanimated';
 
 import { LineTime } from './line-time';
@@ -73,33 +72,7 @@ export const CircularDraggableSlider = forwardRef<
       );
     }, [listWidth]);
 
-    const overlayStyle = useAnimatedStyle(() => {
-      const angleStep = (2 * Math.PI) / linesAmount;
-      const hourIndexRatio = progressRadiants.value / (angleStep * bigLineIndexOffset);
-      const boundedHourIndex = Math.max(
-        1,
-        Math.min(HOUR_LABELS_AMOUNT, Math.round(hourIndexRatio)),
-      );
-      const requestedTickIndex = boundedHourIndex * bigLineIndexOffset;
-      if (requestedTickIndex > linesAmount) {
-        return { opacity: 0 };
-      }
-
-      const targetTickIndex = Math.min(linesAmount - 1, requestedTickIndex);
-      const labelRadius = radius + LABEL_RADIUS_OFFSET;
-      const angle = angleStep * targetTickIndex - progressRadiants.value;
-      const x = Math.cos(angle) * labelRadius;
-      const y = Math.sin(angle) * labelRadius;
-
-      return {
-        opacity: 1,
-        transform: [
-          { translateX: x - LABEL_WIDTH / 2 },
-          { translateY: y - LABEL_HEIGHT / 2 },
-        ],
-      };
-    }, [bigLineIndexOffset, linesAmount, radius]);
-
+    
     useAnimatedReaction(
       () => selectedDuration?.value ?? null,
       duration => {
@@ -115,7 +88,8 @@ export const CircularDraggableSlider = forwardRef<
         const targetProgress = -distanceBetweenTwoTicks * targetIndex;
 
         cancelAnimation(progress);
-        progress.value = withTiming(targetProgress, { duration: 250 });
+        // Use immediate update for real-time synchronization during scroll
+        progress.value = targetProgress;
       },
       [bigLineIndexOffset, distanceBetweenTwoTicks, selectedDuration],
     );
@@ -190,26 +164,6 @@ export const CircularDraggableSlider = forwardRef<
                 />
               );
             })}
-            <Animated.View
-              pointerEvents="none"
-              style={[styles.hourLabelOverlay, overlayStyle]}
-            >
-              <LinearGradient
-                start={{
-                  x: 0,
-                  y: 0
-                }}
-                end={{
-                  x: 0,
-                  y: 1
-                }}
-                colors={['transparent','#00000080', '#000000', '#000000', '#000000' , '#00000080', 'transparent']}
-                style={{
-                  height: "100%",
-                  width: "100%",
-                }}
-              />
-            </Animated.View>
           </Animated.View>
           <LinearGradient
             colors={['#000000', '#000000', '#000000', '#00000070', 'transparent']}
@@ -308,7 +262,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: LABEL_WIDTH,
     height: LABEL_HEIGHT,
-    backgroundColor: '#000',
+    // backgroundColor: 'red',
     borderRadius: LABEL_HEIGHT / 2,
     zIndex: 1,
     left: 10,

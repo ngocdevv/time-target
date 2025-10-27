@@ -40,14 +40,16 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
     const onScroll = useAnimatedScrollHandler({
         onScroll: event => {
             const { contentOffset } = event;
+            // Interpolate to get smooth continuous values during scroll
             const interpolatedDuration = interpolate(
                 contentOffset.y,
                 DurationSnapOffsets,
                 DurationOptions,
             );
+            // Clamp to valid range but keep fractional values for smooth animation
             const clampedDuration = Math.min(
                 DurationOptions[DurationOptions.length - 1],
-                Math.max(DurationOptions[0], Math.round(interpolatedDuration)),
+                Math.max(DurationOptions[0], interpolatedDuration),
             );
             onDurationChange?.(clampedDuration);
         },
@@ -76,7 +78,7 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
                     style={{
                         position: 'absolute',
                         top: 0,
-                        left: 0,
+                        left: 40,
                         right: 0,
                         height: 16,
                     }}
@@ -86,7 +88,7 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
                     style={{
                         position: 'absolute',
                         bottom: 0,
-                        left: 0,
+                        left: 40,
                         right: 0,
                         height: 16,
                     }}
