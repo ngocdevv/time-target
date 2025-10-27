@@ -7,22 +7,19 @@ import Animated, {
     useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 
-/**
- * Props for the TimeRange component
- * @property {(durationHours: number) => void} onDurationChange - Callback triggered when the selected duration changes
- */
+
 type TimeRangeProps = {
     onDurationChange?: (durationHours: number) => void;
 };
 
 const SCALE_FACTOR = 2.5;
-const ITEM_HEIGHT = 36 * SCALE_FACTOR; // Height of each time item in pixels
-const TimeRangeHeight = ITEM_HEIGHT; // Visible area shows a single time option
+const ITEM_HEIGHT = 36 * SCALE_FACTOR;
+const TimeRangeHeight = ITEM_HEIGHT;
 const ArrowWrapperHeight = 24 * SCALE_FACTOR;
 const ArrowIconSize = 10 * SCALE_FACTOR;
 const LabelFontSize = 28 * SCALE_FACTOR;
 const ListWidth = 100 * SCALE_FACTOR;
-const ContainerHeight = TimeRangeHeight + ArrowWrapperHeight * 2; // Extra space for arrow indicators
+const ContainerHeight = TimeRangeHeight + ArrowWrapperHeight * 2;
 const DurationOptions = Array.from({ length: 10 }, (_, index) => index + 1);
 const DurationSnapOffsets = DurationOptions.map((_, index) => index * ITEM_HEIGHT);
 const DurationLabels = DurationOptions.map(hours => `${hours} hr`);
@@ -30,11 +27,6 @@ const DurationLabels = DurationOptions.map(hours => `${hours} hr`);
 export const TimeRange: React.FC<TimeRangeProps> = ({
     onDurationChange,
 }) => {
-    /**
-     * Renders individual time items in the list
-     * @param {Object} param0 - Item data and index
-     * @returns {JSX.Element} Rendered time item
-     */
     const renderItem = useCallback(
         ({ item, index }: { item: string; index: number }) => (
             <View key={index} style={styles.timeItem}>
@@ -44,10 +36,7 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
         [],
     );
 
-    /**
-     * Handles scroll events and interpolates the selected time
-     * Uses Reanimated worklet for smooth performance
-     */
+
     const onScroll = useAnimatedScrollHandler({
         onScroll: event => {
             const { contentOffset } = event;
@@ -70,7 +59,6 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
                 <FontAwesome name="chevron-up" size={ArrowIconSize} color="#ffffff" />
             </View>
             <View>
-
                 <Animated.FlatList
                     onScroll={onScroll}
                     decelerationRate="fast"
