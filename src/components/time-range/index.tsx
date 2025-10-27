@@ -15,7 +15,7 @@ type TimeRangeProps = {
 };
 
 const SCALE_FACTOR = 2.5;
-const ITEM_HEIGHT = 30 * SCALE_FACTOR; // Height of each time item in pixels
+const ITEM_HEIGHT = 36 * SCALE_FACTOR; // Height of each time item in pixels
 const TimeRangeHeight = ITEM_HEIGHT; // Visible area shows a single time option
 const ArrowWrapperHeight = 24 * SCALE_FACTOR;
 const ArrowIconSize = 10 * SCALE_FACTOR;
