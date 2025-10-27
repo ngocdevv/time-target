@@ -6,6 +6,8 @@ import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomTab } from './src/components/bottom-tab';
 import { CircularDraggableSlider, CircularDraggableSliderRefType } from './src/components/circle-time';
+import { Header } from "./src/components/header";
+import { Queued } from "./src/components/queued";
 import { TimeRange } from './src/components/time-range';
 
 const LinesAmount = 200;
@@ -16,12 +18,13 @@ export default function App() {
 
   const circularSliderRef = useRef<CircularDraggableSliderRefType>(null);
   const selectedDuration = useSharedValue(1);
-
   return (
     <SafeAreaProvider>
       <FontsProvider>
         <GestureHandlerRootView style={styles.fill}>
-          <View style={{ flex: 1 }}>
+          <View style={[styles.fill]}>
+            <Header />
+            <Queued />
             <View style={styles.container}>
               <CircularDraggableSlider
                 ref={circularSliderRef}
@@ -75,7 +78,8 @@ const FontsProvider = ({ children }: { children: React.ReactNode }) => {
 
 const styles = StyleSheet.create({
   fill: {
-    flex: 1
+    flex: 1,
+    backgroundColor: '#000',
   },
   button: {
     alignItems: 'center',
