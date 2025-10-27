@@ -94,6 +94,10 @@ export const CircularDraggableSlider = forwardRef<
     const diameter = 2 * Math.PI * radius;
     const distanceBetweenTwoTicks = diameter / linesAmount;
     const listWidth = diameter;
+    const mediumLineHeight =
+      minLineHeight + (maxLineHeight - minLineHeight) / 2;
+    const mediumLineIndexWithinGroup =
+      bigLineIndexOffset > 1 ? Math.round(bigLineIndexOffset / 2) : null;
 
     const { runTimer, stopTimer, resetTimer, isTimerEnabled } = useTimer({
       progress,
@@ -182,30 +186,28 @@ export const CircularDraggableSlider = forwardRef<
           ]}>
           <Animated.View pointerEvents="none">
             {new Array(linesAmount).fill(0).map((_, index) => {
-              // Determine line type based on position
-              const isBigLine = index % bigLineIndexOffset === 0;
+              const groupPosition =
+                bigLineIndexOffset > 0
+                  ? index % bigLineIndexOffset
+                  : index;
+              const isBigLine =
+                bigLineIndexOffset > 0 && groupPosition === 0;
+              const isMediumLine =
+                !isBigLine &&
+                mediumLineIndexWithinGroup !== null &&
+                groupPosition === mediumLineIndexWithinGroup;
 
-              // Calculate the midpoint between consecutive big lines
-              const midpointOffset = bigLineIndexOffset / 2;
-              const isMediumLine = !isBigLine && index % bigLineIndexOffset === midpointOffset;
+              const height = isBigLine
+                ? maxLineHeight
+                : isMediumLine
+                  ? mediumLineHeight
+                  : minLineHeight;
 
-              // Calculate medium line height as the average of max and min
-              const mediumLineHeight = (maxLineHeight + minLineHeight) / 2;
-
-              // Determine height based on line type
-              let height: number;
-              let color: string;
-
-              if (isBigLine) {
-                height = maxLineHeight;
-                color = bigLineColor;
-              } else if (isMediumLine) {
-                height = mediumLineHeight;
-                color = mediumLineColor;
-              } else {
-                height = minLineHeight;
-                color = lineColor;
-              }
+              const color = isBigLine
+                ? bigLineColor
+                : isMediumLine
+                  ? mediumLineColor
+                  : lineColor;
 
               return (
                 <LineTime

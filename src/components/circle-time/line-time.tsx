@@ -29,8 +29,10 @@ export const LineTime: React.FC<TickLineProps> = ({
   const rStyle = useAnimatedStyle(() => {
     const angle =
       ((2 * Math.PI) / linesAmount) * index - progressRadiants.value;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
+    // Shift radius so each tick originates at the circle and points outward
+    const effectiveRadius = radius + height / 2;
+    const x = Math.cos(angle) * effectiveRadius;
+    const y = Math.sin(angle) * effectiveRadius;
     const rotation = -Math.atan2(x, y);
 
     return {
