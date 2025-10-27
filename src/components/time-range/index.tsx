@@ -104,11 +104,9 @@ const styles = StyleSheet.create({
     container: {
         height: ContainerHeight,
         position: "absolute",
-        width: ListWidth - 20,
+        width: ListWidth - 30,
         right: 0,
         justifyContent: 'space-between',
-        // alignItems: 'center',
-        // backgroundColor: "red"
     },
     arrowWrapper: {
         alignItems: 'center',

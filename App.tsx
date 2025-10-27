@@ -13,9 +13,6 @@ import { TimeRange } from './src/components/time-range';
 const LinesAmount = 200;
 
 export default function App() {
-  const animatedNumber = useSharedValue(0);
-  const previousTick = useSharedValue(0);
-
   const circularSliderRef = useRef<CircularDraggableSliderRefType>(null);
   const selectedDuration = useSharedValue(1);
   return (
@@ -32,20 +29,7 @@ export default function App() {
                 linesAmount={LinesAmount}
                 maxLineHeight={20}
                 minLineHeight={8}
-                onProgressChange={sliderProgress => {
-                  'worklet';
-                  if (sliderProgress < 0) {
-                    return;
-                  }
-
-                  // Only trigger haptics when crossing a line (when tick value changes)
-                  if (sliderProgress !== previousTick.value) {
-                    previousTick.value = sliderProgress;
-                  }
-
-                  // Bind the progress value to the animated number
-                  animatedNumber.value = sliderProgress;
-                }}
+                selectedDuration={selectedDuration}
               />
               <TimeRange
                 onDurationChange={durationHours => {
@@ -55,7 +39,7 @@ export default function App() {
               />
             </View>
             <View>
-              
+
             </View>
             <BottomTab />
           </View>

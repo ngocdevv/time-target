@@ -1,20 +1,19 @@
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef } from 'react';
 
 import { LinearGradient } from 'expo-linear-gradient';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
   cancelAnimation,
   interpolate,
   useAnimatedReaction,
+  useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
-  withDecay,
   withTiming,
 } from 'react-native-reanimated';
 
-import { useTimer } from '../useTimer';
 import { LineTime } from './line-time';
 
 
@@ -30,8 +29,6 @@ export type DraggableSliderProps = {
   bigLineIndexOffset?: number;
   // Optional: The width of each line, defaults to 1.5
   lineWidth?: number;
-  // Optional: Callback function called when the progress changes
-  onProgressChange?: (progress: number) => void;
   // Optional: Shared value representing the color of the indicator line
   indicatorColor?: string;
   // Optional: The color of the lines (default is #c6c6c6)
@@ -40,7 +37,7 @@ export type DraggableSliderProps = {
   bigLineColor?: string;
   // Optional: The color of the medium lines (default is #c6c6c6)
   mediumLineColor?: string;
-  onCompletion?: () => void;
+  selectedDuration?: SharedValue<number>;
 };
 
 const { height: WindowHeight } = Dimensions.get('window');
@@ -63,66 +60,20 @@ export const CircularDraggableSlider = forwardRef<
       minLineHeight,
       bigLineIndexOffset = 10,
       lineWidth = 1.5,
-      onProgressChange,
       lineColor = '#c6c6c6',
       bigLineColor = '#c6c6c6',
       mediumLineColor = '#c6c6c6',
-      onCompletion,
+      selectedDuration,
     },
     ref,
   ) => {
     const progress = useSharedValue(0);
-    const previousProgress = useSharedValue(0);
-
+    const isTimerEnabled = useSharedValue(false);
     const distanceBetweenTwoTicksRad = (2 * Math.PI) / linesAmount;
     const diameter = 2 * Math.PI * radius;
     const distanceBetweenTwoTicks = diameter / linesAmount;
     const listWidth = diameter;
 
-    const { runTimer, stopTimer, resetTimer, isTimerEnabled } = useTimer({
-      progress,
-      incrementOffset: distanceBetweenTwoTicks,
-      onCompletion: () => {
-        isTimerEnabled.value = false;
-        onCompletion?.();
-      },
-    });
-
-    useImperativeHandle(ref, () => {
-      return {
-        resetTimer,
-        runTimer,
-        stopTimer,
-      };
-    }, [resetTimer, runTimer, stopTimer]);
-
-    const panGesture = Gesture.Pan()
-      .onBegin(() => {
-        if (isTimerEnabled.value) {
-          return;
-        }
-        cancelAnimation(progress);
-        previousProgress.value = progress.value;
-      })
-      .onUpdate(event => {
-        if (isTimerEnabled.value) {
-          return;
-        }
-        progress.value = event.translationY + previousProgress.value;
-      })
-      .onFinalize(event => {
-        if (isTimerEnabled.value) {
-          return;
-        }
-        if (progress.value > 0) {
-          cancelAnimation(progress);
-          progress.value = withTiming(0, { duration: 500 });
-          return;
-        }
-        progress.value = withDecay({
-          velocity: event.velocityY,
-        });
-      });
 
     // Offset set to 0 for 90-degree rotation (indicator at right side)
     const offset = 0;
@@ -140,10 +91,27 @@ export const CircularDraggableSlider = forwardRef<
         const amountOfSeconds = Math.round(
           (radiants - offset) / distanceBetweenTwoTicksRad,
         );
-        if (onProgressChange) {
-          onProgressChange(amountOfSeconds);
-        }
       },
+    );
+
+    useAnimatedReaction(
+      () => selectedDuration?.value ?? null,
+      duration => {
+        if (duration === null) {
+          return;
+        }
+
+        const clampedDuration = Math.max(0, duration);
+        const targetIndex = Math.min(
+          linesAmount - 1,
+          clampedDuration * bigLineIndexOffset,
+        );
+        const targetProgress = -distanceBetweenTwoTicks * targetIndex;
+
+        cancelAnimation(progress);
+        progress.value = withTiming(targetProgress, { duration: 250 });
+      },
+      [bigLineIndexOffset, distanceBetweenTwoTicks, selectedDuration],
     );
 
     return (
@@ -205,6 +173,24 @@ export const CircularDraggableSlider = forwardRef<
                 />
               );
             })}
+            {new Array(10).fill(0).map((_, hourIndex) => {
+              const label = `${hourIndex + 1} hr`;
+              const tickIndex = (hourIndex + 1) * bigLineIndexOffset;
+              if (tickIndex > linesAmount) {
+                return null;
+              }
+
+              return (
+                <HourLabel
+                  key={label}
+                  label={label}
+                  radius={radius}
+                  linesAmount={linesAmount}
+                  progressRadiants={progressRadiants}
+                  tickIndex={tickIndex}
+                />
+              );
+            })}
           </Animated.View>
           <LinearGradient
             // Background Linear Gradient
@@ -219,26 +205,69 @@ export const CircularDraggableSlider = forwardRef<
             }}
             style={{
               position: 'absolute',
-              height: radius * 2 + 40,
-              width: radius,
-              top: -(WindowHeight / 2 - radius - 16)
+              height: radius * 2 + 94,
+              width: radius + 20,
+              left: -30,
+              top: -(WindowHeight / 2 - radius + 8),
+              // backgroundColor: 'red',
+              borderRadius: 1000
             }}
           />
         </View>
-        <GestureDetector gesture={panGesture}>
-          <Animated.View
-            style={[
-              {
-                height: WindowHeight / 2,
-              },
-              styles.timer,
-            ]}
-          />
-        </GestureDetector>
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            {
+              height: WindowHeight / 2,
+            },
+            styles.timer,
+          ]}
+        />
       </View>
     );
   },
 );
+
+type HourLabelProps = {
+  label: string;
+  progressRadiants: SharedValue<number>;
+  linesAmount: number;
+  tickIndex: number;
+  radius: number;
+};
+
+const LABEL_WIDTH = 60;
+const LABEL_HEIGHT = 28;
+const LABEL_RADIUS_OFFSET = 40;
+
+const HourLabel: React.FC<HourLabelProps> = ({
+  label,
+  progressRadiants,
+  linesAmount,
+  tickIndex,
+  radius,
+}) => {
+  const rStyle = useAnimatedStyle(() => {
+    const angle =
+      ((2 * Math.PI) / linesAmount) * tickIndex - progressRadiants.value;
+    const labelRadius = radius + LABEL_RADIUS_OFFSET;
+    const x = Math.cos(angle) * labelRadius;
+    const y = Math.sin(angle) * labelRadius;
+
+    return {
+      transform: [
+        { translateX: x - LABEL_WIDTH / 2 },
+        { translateY: y - LABEL_HEIGHT / 2 },
+      ],
+    };
+  }, [linesAmount, radius, tickIndex]);
+
+  return (
+    <Animated.View pointerEvents="none" style={[styles.hourLabel, rStyle]}>
+      <Text style={styles.hourLabelText}>{label}</Text>
+    </Animated.View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -248,5 +277,18 @@ const styles = StyleSheet.create({
     bottom: 0,
     position: 'absolute',
     width: '100%',
+  },
+  hourLabel: {
+    position: 'absolute',
+    width: LABEL_WIDTH,
+    height: LABEL_HEIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hourLabelText: {
+    color: '#d8d8d8',
+    fontFamily: 'SF-Pro-Rounded-Bold',
+    fontSize: 20,
+    left: 10
   },
 });
