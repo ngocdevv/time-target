@@ -2,6 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
     interpolate,
     useAnimatedScrollHandler,
@@ -9,7 +10,7 @@ import Animated, {
 
 
 type TimeRangeProps = {
-    onDurationChange?: (durationHours: number) => void;
+    selectedDuration: SharedValue<number>;
 };
 
 const SCALE_FACTOR = 2.5;
@@ -25,7 +26,7 @@ const DurationSnapOffsets = DurationOptions.map((_, index) => index * ITEM_HEIGH
 const DurationLabels = DurationOptions.map(hours => `${hours} hr`);
 
 export const TimeRange: React.FC<TimeRangeProps> = ({
-    onDurationChange,
+    selectedDuration,
 }) => {
     const renderItem = useCallback(
         ({ item, index }: { item: string; index: number }) => (
@@ -39,19 +40,20 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
 
     const onScroll = useAnimatedScrollHandler({
         onScroll: event => {
+            'worklet';
             const { contentOffset } = event;
-            // Interpolate to get smooth continuous values during scroll
             const interpolatedDuration = interpolate(
                 contentOffset.y,
                 DurationSnapOffsets,
                 DurationOptions,
-            );
-            // Clamp to valid range but keep fractional values for smooth animation
+            )
             const clampedDuration = Math.min(
                 DurationOptions[DurationOptions.length - 1],
                 Math.max(DurationOptions[0], interpolatedDuration),
             );
-            onDurationChange?.(clampedDuration);
+            if (Math.abs(selectedDuration.value - clampedDuration) > 0.01) {
+                selectedDuration.value = clampedDuration;
+            }
         },
     });
 
@@ -63,6 +65,7 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
             <View>
                 <Animated.FlatList
                     onScroll={onScroll}
+                    scrollEventThrottle={16}
                     decelerationRate="fast"
                     snapToAlignment="center"
                     snapToOffsets={DurationSnapOffsets}

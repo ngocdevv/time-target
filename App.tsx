@@ -1,22 +1,17 @@
 import { useFonts } from "expo-font";
-import { useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomTab } from './src/components/bottom-tab';
-import { CircularDraggableSlider, CircularDraggableSliderRefType } from './src/components/circle-time';
+import { CircleTime } from './src/components/circle-time';
 import { Footer } from "./src/components/footer";
 import { Header } from "./src/components/header";
 import { Queued } from "./src/components/queued";
 import { TimeRange } from './src/components/time-range';
 
-const LinesAmount = 200;
-
 export default function App() {
-
-  const circularSliderRef = useRef<CircularDraggableSliderRefType>(null);
-  const selectedDuration = useSharedValue(1);
+  const selectedDuration = useSharedValue(5);
   return (
     <SafeAreaProvider>
       <FontsProvider>
@@ -25,20 +20,9 @@ export default function App() {
             <Header />
             <Queued />
             <View style={styles.container}>
-              <CircularDraggableSlider
-                ref={circularSliderRef}
-                bigLineIndexOffset={10}
-                linesAmount={LinesAmount}
-                maxLineHeight={20}
-                minLineHeight={8}
-                selectedDuration={selectedDuration}
+              <CircleTime selectedDuration={selectedDuration}
               />
-              <TimeRange
-                onDurationChange={durationHours => {
-                  'worklet';
-                  selectedDuration.value = durationHours;
-                }}
-              />
+              <TimeRange selectedDuration={selectedDuration} />
             </View>
             <Footer />
             <BottomTab />
@@ -88,5 +72,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  
+
 });

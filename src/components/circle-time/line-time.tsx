@@ -1,6 +1,5 @@
 import Animated, {
   useAnimatedStyle,
-  withTiming,
 } from 'react-native-reanimated';
 
 import type { SharedValue } from 'react-native-reanimated';
@@ -13,7 +12,6 @@ type TickLineProps = {
   lineWidth: number;
   color: string;
   linesAmount: number;
-  disabled: SharedValue<boolean>;
 };
 
 export const LineTime: React.FC<TickLineProps> = ({
@@ -24,7 +22,6 @@ export const LineTime: React.FC<TickLineProps> = ({
   lineWidth,
   color,
   linesAmount,
-  disabled,
 }) => {
   const rStyle = useAnimatedStyle(() => {
     const angle =
@@ -36,9 +33,7 @@ export const LineTime: React.FC<TickLineProps> = ({
     const rotation = -Math.atan2(x, y);
 
     return {
-      backgroundColor: withTiming(
-        disabled.value ? 'rgba(222, 208, 208, 0.525)' : color,
-      ),
+      backgroundColor: color,
       transform: [
         {
           translateX: x - lineWidth / 2,

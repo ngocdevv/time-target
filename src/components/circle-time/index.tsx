@@ -1,6 +1,6 @@
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
-import { forwardRef } from 'react';
+import { useMemo } from 'react';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import type { SharedValue } from 'react-native-reanimated';
@@ -17,188 +17,172 @@ import { LineTime } from './line-time';
 
 
 export type DraggableSliderProps = {
-  linesAmount: number;
-  maxLineHeight: number;
-  minLineHeight: number;
   bigLineIndexOffset?: number;
-  lineWidth?: number;
-  indicatorColor?: string;
-  lineColor?: string;
-  bigLineColor?: string;
-  mediumLineColor?: string;
-  selectedDuration?: SharedValue<number>;
+  selectedDuration: SharedValue<number>;
 };
 
 const { height: WindowHeight } = Dimensions.get('window');
 const radius = 200;
 const HOUR_LABELS_AMOUNT = 10;
+const maxLineHeight = 20;
+const minLineHeight = 8;
+const linesAmount = 200;
+const lineWidth = 1.5;
 
-export type CircularDraggableSliderRefType = {
-  resetTimer: () => void;
-  runTimer: (to: number) => void;
-  stopTimer: () => void;
-};
+export const CircleTime: React.FC<DraggableSliderProps> = ({
+  bigLineIndexOffset = 10,
+  selectedDuration,
+}) => {
+  const progress = useSharedValue(0);
+  const diameter = 2 * Math.PI * radius;
+  const distanceBetweenTwoTicks = diameter / linesAmount;
+  const listWidth = diameter;
 
-export const CircularDraggableSlider = forwardRef<
-  CircularDraggableSliderRefType,
-  DraggableSliderProps
->(
-  (
-    {
-      linesAmount,
-      maxLineHeight,
-      minLineHeight,
-      bigLineIndexOffset = 10,
-      lineWidth = 1.5,
-      lineColor = '#c6c6c6',
-      bigLineColor = '#c6c6c6',
-      mediumLineColor = '#c6c6c6',
-      selectedDuration,
-    },
-    ref,
-  ) => {
-    const progress = useSharedValue(0);
-    const isTimerEnabled = useSharedValue(false);
-    const diameter = 2 * Math.PI * radius;
-    const distanceBetweenTwoTicks = diameter / linesAmount;
-    const listWidth = diameter;
-
-    const offset = 0;
-    const progressRadiants = useDerivedValue(() => {
-      return interpolate(
-        -progress.value,
-        [0, listWidth],
-        [offset, 2 * Math.PI + offset],
-      );
-    }, [listWidth]);
-
-    
-    useAnimatedReaction(
-      () => selectedDuration?.value ?? null,
-      duration => {
-        if (duration === null) {
-          return;
-        }
-
-        const clampedDuration = Math.max(0, duration);
-        const targetIndex = Math.min(
-          linesAmount - 1,
-          clampedDuration * bigLineIndexOffset,
-        );
-        const targetProgress = -distanceBetweenTwoTicks * targetIndex;
-
-        cancelAnimation(progress);
-        // Use immediate update for real-time synchronization during scroll
-        progress.value = targetProgress;
-      },
-      [bigLineIndexOffset, distanceBetweenTwoTicks, selectedDuration],
+  const progressRadiants = useDerivedValue(() => {
+    return interpolate(
+      -progress.value,
+      [0, listWidth],
+      [0, 2 * Math.PI],
     );
+  }, [listWidth]);
 
-    return (
-      <View style={styles.container}>
-        <View
-          pointerEvents="none"
-          style={[
-            {
-              height: radius * 2,
-              width: radius * 2,
-              right: 60,
-              transform: [
-                {
-                  translateY: WindowHeight / 2 - radius - 36,
-                },
-              ],
-            },
-          ]}>
+  const mediumLineHeight = useMemo(
+    () => (maxLineHeight + minLineHeight) / 2,
+    [maxLineHeight, minLineHeight],
+  );
+  const lineIndices = useMemo(
+    () => Array.from({ length: linesAmount }, (_, index) => index),
+    [linesAmount],
+  );
+  const hourLabels = useMemo(() => {
+    return Array.from({ length: HOUR_LABELS_AMOUNT }, (_, hourIndex) => {
+      const label = `${hourIndex + 1} hr`;
+      const tickIndex = (hourIndex + 1) * bigLineIndexOffset;
+      return { label, tickIndex };
+    });
+  }, [bigLineIndexOffset]);
 
-          <Animated.View pointerEvents="none">
+  useAnimatedReaction(
+    () => selectedDuration.value,
+    duration => {
+      'worklet';
+      const clampedDuration = Math.max(0, duration);
+      const targetIndex = Math.min(
+        linesAmount - 1,
+        clampedDuration * bigLineIndexOffset,
+      );
+      const targetProgress = -distanceBetweenTwoTicks * targetIndex;
+      if (Math.abs(progress.value - targetProgress) < 0.01) {
+        return;
+      }
 
-            {new Array(linesAmount).fill(0).map((_, index) => {
-              const isBigLine = index % bigLineIndexOffset === 0;
-              const midpointOffset = bigLineIndexOffset / 2;
-              const isMediumLine = !isBigLine && index % bigLineIndexOffset === midpointOffset;
-              const mediumLineHeight = (maxLineHeight + minLineHeight) / 2;
-              let height: number;
-              let color: string;
+      cancelAnimation(progress);
+      progress.value = targetProgress;
+    },
+    [bigLineIndexOffset, distanceBetweenTwoTicks, linesAmount],
+  );
 
-              if (isBigLine) {
-                height = maxLineHeight;
-                color = bigLineColor;
-              } else if (isMediumLine) {
-                height = mediumLineHeight;
-                color = mediumLineColor;
-              } else {
-                height = minLineHeight;
-                color = lineColor;
-              }
+  return (
+    <View style={styles.container}>
+      <View
+        pointerEvents="none"
+        style={[
+          {
+            height: radius * 2,
+            width: radius * 2,
+            right: 60,
+            transform: [
+              {
+                translateY: WindowHeight / 2 - radius - 36,
+              },
+            ],
+          },
+        ]}>
 
-              return (
-                <LineTime
-                  disabled={isTimerEnabled}
-                  key={index}
-                  height={height}
-                  radius={radius}
-                  progressRadiants={progressRadiants}
-                  index={index}
-                  lineWidth={lineWidth}
-                  color={color}
-                  linesAmount={linesAmount}
-                />
-              );
-            })}
-            {new Array(HOUR_LABELS_AMOUNT).fill(0).map((_, hourIndex) => {
-              const label = `${hourIndex + 1} hr`;
-              const tickIndex = (hourIndex + 1) * bigLineIndexOffset;
-              if (tickIndex > linesAmount) {
-                return null;
-              }
+        <Animated.View pointerEvents="none">
 
-              return (
-                <HourLabel
-                  key={label}
-                  label={label}
-                  radius={radius}
-                  linesAmount={linesAmount}
-                  progressRadiants={progressRadiants}
-                  tickIndex={tickIndex}
-                />
-              );
-            })}
-          </Animated.View>
-          <LinearGradient
-            colors={['#000000', '#000000', '#000000', '#00000070', 'transparent']}
-            start={{
-              x: 0,
-              y: 0
-            }}
-            end={{
-              x: 1.1,
-              y: 0
-            }}
-            style={{
-              position: 'absolute',
-              height: radius * 2 + 94,
-              width: radius * 2 + 94,
-              left: -220,
-              top: -(WindowHeight / 2 - radius + 8),
-              // backgroundColor: 'red',
-              borderRadius: 1000
-            }}
-          />
-        </View>
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            {
-              height: WindowHeight / 2,
-            },
-            styles.timer,
-          ]}
+          {lineIndices.map(index => {
+            const isBigLine = index % bigLineIndexOffset === 0;
+            const midpointOffset = bigLineIndexOffset / 2;
+            const isMediumLine =
+              !isBigLine && index % bigLineIndexOffset === midpointOffset;
+            let height: number;
+            let color: string;
+
+            if (isBigLine) {
+              height = maxLineHeight;
+              color = '#c6c6c6';
+            } else if (isMediumLine) {
+              height = mediumLineHeight;
+              color = '#c6c6c6';
+            } else {
+              height = minLineHeight;
+              color = '#c6c6c6';
+            }
+
+            return (
+              <LineTime
+                key={index}
+                height={height}
+                radius={radius}
+                progressRadiants={progressRadiants}
+                index={index}
+                lineWidth={lineWidth}
+                color={color}
+                linesAmount={linesAmount}
+              />
+            );
+          })}
+          {hourLabels.map(({ label, tickIndex }) => {
+            if (tickIndex > linesAmount) {
+              return null;
+            }
+
+            return (
+              <HourLabel
+                key={label}
+                label={label}
+                radius={radius}
+                linesAmount={linesAmount}
+                progressRadiants={progressRadiants}
+                tickIndex={tickIndex}
+              />
+            );
+          })}
+        </Animated.View>
+        <LinearGradient
+          colors={['#000000', '#000000', '#000000', '#00000070', 'transparent']}
+          start={{
+            x: 0,
+            y: 0
+          }}
+          end={{
+            x: 1.1,
+            y: 0
+          }}
+          style={{
+            position: 'absolute',
+            height: radius * 2 + 94,
+            width: radius * 2 + 94,
+            left: -220,
+            top: -(WindowHeight / 2 - radius + 8),
+            // backgroundColor: 'red',
+            borderRadius: 1000
+          }}
         />
       </View>
-    );
-  },
-);
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            height: WindowHeight / 2,
+          },
+          styles.timer,
+        ]}
+      />
+    </View>
+  );
+};
 
 type HourLabelProps = {
   label: string;
