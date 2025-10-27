@@ -2,6 +2,7 @@ import { Dimensions, StyleSheet, View } from 'react-native';
 
 import { forwardRef, useImperativeHandle } from 'react';
 
+import { LinearGradient } from 'expo-linear-gradient';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
@@ -161,7 +162,9 @@ export const CircularDraggableSlider = forwardRef<
               ],
             },
           ]}>
+
           <Animated.View pointerEvents="none">
+
             {new Array(linesAmount).fill(0).map((_, index) => {
               // Determine line type based on position
               const isBigLine = index % bigLineIndexOffset === 0;
@@ -203,6 +206,24 @@ export const CircularDraggableSlider = forwardRef<
               );
             })}
           </Animated.View>
+          <LinearGradient
+            // Background Linear Gradient
+            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0.9)', 'transparent']}
+            start={{
+              x: 0,
+              y: 0
+            }}
+            end={{
+              x: 1,
+              y: 0
+            }}
+            style={{
+              position: 'absolute',
+              height: radius * 2 + 30,
+              width: radius,
+              top: -(WindowHeight / 2 - radius - 16)
+            }}
+          />
         </View>
         <GestureDetector gesture={panGesture}>
           <Animated.View
