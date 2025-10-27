@@ -1,7 +1,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
     interpolate,
@@ -72,9 +72,9 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
 
     return (
         <View style={styles.container}>
-            <View style={styles.arrowWrapper}>
+            <Pressable style={styles.arrowWrapper} onPress={() => {}} >
                 <FontAwesome name="chevron-up" size={ArrowIconSize} color="#ffffff" />
-            </View>
+            </Pressable>
             <View>
                 <Animated.FlatList
                     onScroll={onScroll}
@@ -113,9 +113,9 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
                 />
 
             </View>
-            <View style={styles.arrowWrapper}>
+            <Pressable style={styles.arrowWrapper}>
                 <FontAwesome name="chevron-down" size={ArrowIconSize} color="#ffffff" />
-            </View>
+            </Pressable>
         </View>
     );
 };
