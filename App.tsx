@@ -1,7 +1,7 @@
 import { useFonts } from "expo-font";
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useSharedValue } from 'react-native-reanimated';
+import Animated, { FadeInUp, useSharedValue } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomTab } from './src/components/bottom-tab';
 import { CircleTime } from './src/components/circle-time';
@@ -19,10 +19,10 @@ export default function App() {
           <View style={[styles.fill]}>
             <Header />
             <Queued />
-            <View style={styles.container}>
+            <Animated.View entering={FadeInUp.duration(600)} style={styles.container}>
               <CircleTime selectedDuration={selectedDuration}/>
               <TimeRange selectedDuration={selectedDuration} />
-            </View>
+            </Animated.View>
             <Footer />
             <BottomTab />
           </View>

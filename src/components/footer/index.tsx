@@ -1,10 +1,11 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { StyleSheet, Text, TouchableOpacity } from "react-native"
+import Animated, { FadeInUp } from "react-native-reanimated"
 
 
 
 export const Footer = () => {
     return (
-        <View style={styles.buttonsWrapper}>
+        <Animated.View entering={FadeInUp.duration(800)} style={styles.buttonsWrapper}>
             <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={() => console.log('Confirm pressed')}
@@ -18,7 +19,7 @@ export const Footer = () => {
             >
                 <Text style={styles.backButtonText}>← Back</Text>
             </TouchableOpacity>
-        </View>
+        </Animated.View>
     )
 }
 

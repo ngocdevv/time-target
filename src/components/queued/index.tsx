@@ -1,11 +1,12 @@
 import { Text, View } from "react-native"
+import Animated, { FadeInUp } from "react-native-reanimated"
 
 
 
 export const Queued = () => {
     return (
         <>
-            <View style={{
+            <Animated.View entering={FadeInUp.duration(300)} style={{
                 backgroundColor: "#00655C",
                 height: 60,
                 borderRadius: 24,
@@ -54,8 +55,8 @@ export const Queued = () => {
                         fontWeight: "500"
                     }}>Queued</Text>
                 </View>
-            </View>
-            <Text style={{
+            </Animated.View>
+            <Animated.Text entering={FadeInUp.duration(500)} style={{
                 color: "#fff",
                 fontSize: 14,
                 fontFamily: 'SF-Pro-Rounded-Bold',
@@ -64,7 +65,7 @@ export const Queued = () => {
                 textAlign: "center"
             }}>
                 Adjust project time target
-            </Text>
+            </Animated.Text>
         </>
     )
 }
