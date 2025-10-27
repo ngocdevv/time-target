@@ -18,24 +18,14 @@ import { LineTime } from './line-time';
 
 
 export type DraggableSliderProps = {
-  // Total number of lines in the slider
   linesAmount: number;
-  // Maximum height of a line
   maxLineHeight: number;
-  // Minimum height of a line
   minLineHeight: number;
-  // Optional: Offset for determining big lines, defaults to 10
-  // That means that every 10th line will be a big line
   bigLineIndexOffset?: number;
-  // Optional: The width of each line, defaults to 1.5
   lineWidth?: number;
-  // Optional: Shared value representing the color of the indicator line
   indicatorColor?: string;
-  // Optional: The color of the lines (default is #c6c6c6)
   lineColor?: string;
-  // Optional: The color of the big lines (default is #c6c6c6)
   bigLineColor?: string;
-  // Optional: The color of the medium lines (default is #c6c6c6)
   mediumLineColor?: string;
   selectedDuration?: SharedValue<number>;
 };
@@ -69,13 +59,10 @@ export const CircularDraggableSlider = forwardRef<
   ) => {
     const progress = useSharedValue(0);
     const isTimerEnabled = useSharedValue(false);
-    const distanceBetweenTwoTicksRad = (2 * Math.PI) / linesAmount;
     const diameter = 2 * Math.PI * radius;
     const distanceBetweenTwoTicks = diameter / linesAmount;
     const listWidth = diameter;
 
-
-    // Offset set to 0 for 90-degree rotation (indicator at right side)
     const offset = 0;
     const progressRadiants = useDerivedValue(() => {
       return interpolate(
@@ -84,15 +71,6 @@ export const CircularDraggableSlider = forwardRef<
         [offset, 2 * Math.PI + offset],
       );
     }, [listWidth]);
-
-    useAnimatedReaction(
-      () => progressRadiants.value,
-      radiants => {
-        const amountOfSeconds = Math.round(
-          (radiants - offset) / distanceBetweenTwoTicksRad,
-        );
-      },
-    );
 
     useAnimatedReaction(
       () => selectedDuration?.value ?? null,
@@ -122,7 +100,7 @@ export const CircularDraggableSlider = forwardRef<
             {
               height: radius * 2,
               width: radius * 2,
-              right: 50,
+              right: 60,
               transform: [
                 {
                   translateY: WindowHeight / 2 - radius - 36,
@@ -134,17 +112,10 @@ export const CircularDraggableSlider = forwardRef<
           <Animated.View pointerEvents="none">
 
             {new Array(linesAmount).fill(0).map((_, index) => {
-              // Determine line type based on position
               const isBigLine = index % bigLineIndexOffset === 0;
-
-              // Calculate the midpoint between consecutive big lines
               const midpointOffset = bigLineIndexOffset / 2;
               const isMediumLine = !isBigLine && index % bigLineIndexOffset === midpointOffset;
-
-              // Calculate medium line height as the average of max and min
               const mediumLineHeight = (maxLineHeight + minLineHeight) / 2;
-
-              // Determine height based on line type
               let height: number;
               let color: string;
 
@@ -193,21 +164,20 @@ export const CircularDraggableSlider = forwardRef<
             })}
           </Animated.View>
           <LinearGradient
-            // Background Linear Gradient
-            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0.9)', 'transparent']}
+            colors={['#000000', '#000000', '#000000', '#00000070', 'transparent']}
             start={{
               x: 0,
               y: 0
             }}
             end={{
-              x: 1,
+              x: 1.1,
               y: 0
             }}
             style={{
               position: 'absolute',
               height: radius * 2 + 94,
-              width: radius + 20,
-              left: -30,
+              width: radius * 2 + 94,
+              left: -220,
               top: -(WindowHeight / 2 - radius + 8),
               // backgroundColor: 'red',
               borderRadius: 1000
@@ -284,11 +254,11 @@ const styles = StyleSheet.create({
     height: LABEL_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
+    left: 10
   },
   hourLabelText: {
     color: '#d8d8d8',
     fontFamily: 'SF-Pro-Rounded-Bold',
     fontSize: 20,
-    left: 10
   },
 });

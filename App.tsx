@@ -1,11 +1,12 @@
 import { useFonts } from "expo-font";
 import { useRef } from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomTab } from './src/components/bottom-tab';
 import { CircularDraggableSlider, CircularDraggableSliderRefType } from './src/components/circle-time';
+import { Footer } from "./src/components/footer";
 import { Header } from "./src/components/header";
 import { Queued } from "./src/components/queued";
 import { TimeRange } from './src/components/time-range';
@@ -39,21 +40,7 @@ export default function App() {
                 }}
               />
             </View>
-            <View style={styles.buttonsWrapper}>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={() => console.log('Confirm pressed')}
-              >
-                <Text style={styles.confirmButtonText}>Confirm</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => console.log('Back pressed')}
-              >
-                <Text style={styles.backButtonText}>← Back</Text>
-              </TouchableOpacity>
-            </View>
+            <Footer />
             <BottomTab />
           </View>
         </GestureHandlerRootView>
@@ -99,50 +86,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: 'center',
-    backgroundColor: '#000',
     flex: 1,
   },
-  buttonsWrapper: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-    gap: 12,
-  },
-  confirmButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // iOS shadow
-    ...Platform.select({
-      ios: {
-        shadowColor: '#FFFFFF',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  confirmButtonText: {
-    color: '#504e4eff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  
 });
