@@ -19,7 +19,7 @@ const TimeRangeHeight = ITEM_HEIGHT;
 const ArrowWrapperHeight = 24 * SCALE_FACTOR;
 const ArrowIconSize = 10 * SCALE_FACTOR;
 const LabelFontSize = 28 * SCALE_FACTOR;
-const ListWidth = 100 * SCALE_FACTOR;
+const ListWidth = 100 * SCALE_FACTOR - 66;
 const ContainerHeight = TimeRangeHeight + ArrowWrapperHeight * 2;
 const DurationOptions = Array.from({ length: 10 }, (_, index) => index + 1);
 const DurationSnapOffsets = DurationOptions.map((_, index) => index * ITEM_HEIGHT);
@@ -37,6 +37,19 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
         [],
     );
 
+    const getItemLayout = useCallback(
+        (_: unknown, index: number) => ({
+            length: ITEM_HEIGHT,
+            offset: ITEM_HEIGHT * index,
+            index,
+        }),
+        [],
+    );
+
+    const initialScrollIndex = Math.max(
+        0,
+        DurationOptions.indexOf(Math.round(selectedDuration.value)),
+    );
 
     const onScroll = useAnimatedScrollHandler({
         onScroll: event => {
@@ -68,6 +81,8 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
                     scrollEventThrottle={16}
                     decelerationRate="fast"
                     snapToAlignment="center"
+                    getItemLayout={getItemLayout}
+                    initialScrollIndex={initialScrollIndex}
                     snapToOffsets={DurationSnapOffsets}
                     contentContainerStyle={styles.scrollViewContent}
                     showsVerticalScrollIndicator={false}
@@ -81,7 +96,7 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
                     style={{
                         position: 'absolute',
                         top: 0,
-                        left: 40,
+                        left: 0,
                         right: 0,
                         height: 16,
                     }}
@@ -91,7 +106,7 @@ export const TimeRange: React.FC<TimeRangeProps> = ({
                     style={{
                         position: 'absolute',
                         bottom: 0,
-                        left: 40,
+                        left: 0,
                         right: 0,
                         height: 16,
                     }}
@@ -109,9 +124,8 @@ const styles = StyleSheet.create({
     container: {
         height: ContainerHeight,
         position: "absolute",
-        width: ListWidth - 30,
-        right: 0,
-        justifyContent: 'space-between',
+        width: ListWidth,
+        right: 0
     },
     arrowWrapper: {
         alignItems: 'center',

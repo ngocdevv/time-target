@@ -20,8 +20,7 @@ export default function App() {
             <Header />
             <Queued />
             <View style={styles.container}>
-              <CircleTime selectedDuration={selectedDuration}
-              />
+              <CircleTime selectedDuration={selectedDuration}/>
               <TimeRange selectedDuration={selectedDuration} />
             </View>
             <Footer />

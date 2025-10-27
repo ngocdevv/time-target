@@ -100,7 +100,6 @@ export const CircleTime: React.FC<DraggableSliderProps> = ({
         ]}>
 
         <Animated.View pointerEvents="none">
-
           {lineIndices.map(index => {
             const isBigLine = index % bigLineIndexOffset === 0;
             const midpointOffset = bigLineIndexOffset / 2;
@@ -133,11 +132,11 @@ export const CircleTime: React.FC<DraggableSliderProps> = ({
               />
             );
           })}
+
           {hourLabels.map(({ label, tickIndex }) => {
             if (tickIndex > linesAmount) {
               return null;
             }
-
             return (
               <HourLabel
                 key={label}
@@ -151,7 +150,7 @@ export const CircleTime: React.FC<DraggableSliderProps> = ({
           })}
         </Animated.View>
         <LinearGradient
-          colors={['#000000', '#000000', '#000000', '#00000070', 'transparent']}
+          colors={['#000000', '#000000', '#000000', '#000000f9', '#000000b2', 'transparent']}
           start={{
             x: 0,
             y: 0
@@ -166,20 +165,32 @@ export const CircleTime: React.FC<DraggableSliderProps> = ({
             width: radius * 2 + 94,
             left: -220,
             top: -(WindowHeight / 2 - radius + 8),
-            // backgroundColor: 'red',
-            borderRadius: 1000
+            borderRadius: 1000,
+            alignItems: "flex-end",
+            justifyContent: "center",
           }}
-        />
+        >
+          <LinearGradient
+            colors={['transparent', '#000000', '#000000', '#000000', 'transparent']}
+            start={{
+              x: 0,
+              y: 0
+            }}
+            end={{
+              x: 0,
+              y: 1.1
+            }}
+            style={{
+              height: LABEL_HEIGHT,
+              width: LABEL_WIDTH,
+              borderRadius: 1000,
+              zIndex: 1,
+              left: 4,
+              top: -3
+            }}
+          />
+        </LinearGradient>
       </View>
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          {
-            height: WindowHeight / 2,
-          },
-          styles.timer,
-        ]}
-      />
     </View>
   );
 };
@@ -193,7 +204,7 @@ type HourLabelProps = {
 };
 
 const LABEL_WIDTH = 60;
-const LABEL_HEIGHT = 28;
+const LABEL_HEIGHT = 30;
 const LABEL_RADIUS_OFFSET = 40;
 
 const HourLabel: React.FC<HourLabelProps> = ({

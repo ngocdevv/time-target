@@ -29,7 +29,7 @@ export const Header = () => {
         <View style={{
             alignItems: "center",
             flexDirection: "row",
-            columnGap: 6
+            columnGap: 8
         }}>
             <Image source={require("../../../assets/images/avatar.jpg")} style={{
                 width: 32,
@@ -47,7 +47,7 @@ export const Header = () => {
             justifyContent: "center",
             alignItems: "center",
         }}>
-            <FontAwesome name="bell" size={14} color="#63666aff" />
+            <FontAwesome name="gear" size={16} color="#63666aff" />
         </View>
 
     </View>;
