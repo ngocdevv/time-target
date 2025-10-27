@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons"
+import { AntDesign } from "@expo/vector-icons"
 import { usePathname, useRouter } from "expo-router"
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -36,13 +36,13 @@ export const BottomTab = () => {
         {
             name: "messages",
             label: "Messages",
-            iconName: "message-circle",
+            iconName: "message",
             route: "/messages",
         },
         {
             name: "team",
             label: "Team",
-            iconName: "account-multiple",
+            iconName: "user-switch",
             route: "/team",
         },
     ]
@@ -83,8 +83,9 @@ export const BottomTab = () => {
                                     styles.tabContentActive,
                             ]}
                         >
-                            <MaterialCommunityIcons
+                            <AntDesign
                                 name={tab.iconName as any}
+                                // name="credit-card"
                                 size={20}
                                 color={
                                     isActive(tab.route)
@@ -112,13 +113,14 @@ export const BottomTab = () => {
 const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
-        backgroundColor: "#0C0F0E",
+        backgroundColor: "#000000",
         paddingVertical: 12,
         borderTopWidth: 1,
         borderTopColor: "#374151",
+        justifyContent: "space-between",
+        paddingHorizontal: 12
     },
     tabItem: {
-        flex: 1,
         alignItems: "center",
         justifyContent: "center",
     },
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
         opacity: 1,
     },
     tabLabel: {
-        fontSize: 11,
+        fontSize: 10,
         color: "#9CA3AF",
         marginTop: 4,
         fontWeight: "500",
@@ -144,15 +146,15 @@ const styles = StyleSheet.create({
     },
     projectButton: {
         backgroundColor: "#424446",
-        paddingHorizontal: 12,
-        paddingVertical: 12,
-        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 13,
+        borderRadius: 14,
         justifyContent: "center",
         alignItems: "center",
     },
     projectButtonText: {
         color: "#FFFFFF",
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: "600",
     },
 })
