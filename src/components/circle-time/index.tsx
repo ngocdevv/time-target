@@ -4,13 +4,13 @@ import { forwardRef, useImperativeHandle } from 'react';
 
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-    cancelAnimation,
-    interpolate,
-    useAnimatedReaction,
-    useDerivedValue,
-    useSharedValue,
-    withDecay,
-    withTiming,
+  cancelAnimation,
+  interpolate,
+  useAnimatedReaction,
+  useDerivedValue,
+  useSharedValue,
+  withDecay,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { useTimer } from '../useTimer';
@@ -37,11 +37,13 @@ export type DraggableSliderProps = {
   lineColor?: string;
   // Optional: The color of the big lines (default is #c6c6c6)
   bigLineColor?: string;
+  // Optional: The color of the medium lines (default is #c6c6c6)
+  mediumLineColor?: string;
   onCompletion?: () => void;
 };
 
 const { height: WindowHeight } = Dimensions.get('window');
-const radius = 280;
+const radius = 250;
 
 export type CircularDraggableSliderRefType = {
   resetTimer: () => void;
@@ -78,9 +80,9 @@ export const CircularDraggableSlider = forwardRef<
       bigLineIndexOffset = 10,
       lineWidth = 1.5,
       onProgressChange,
-      indicatorColor,
       lineColor = '#c6c6c6',
       bigLineColor = '#c6c6c6',
+      mediumLineColor = '#c6c6c6',
       onCompletion,
     },
     ref,
@@ -122,7 +124,7 @@ export const CircularDraggableSlider = forwardRef<
         if (isTimerEnabled.value) {
           return;
         }
-        progress.value = event.translationX + previousProgress.value;
+        progress.value = event.translationY + previousProgress.value;
       })
       .onFinalize(event => {
         if (isTimerEnabled.value) {
@@ -134,11 +136,12 @@ export const CircularDraggableSlider = forwardRef<
           return;
         }
         progress.value = withDecay({
-          velocity: event.velocityX,
+          velocity: event.velocityY,
         });
       });
 
-    const offset = Math.PI / 2;
+    // Offset set to 0 for 90-degree rotation (indicator at right side)
+    const offset = 0;
     const progressRadiants = useDerivedValue(() => {
       return interpolate(
         -progress.value,
@@ -177,21 +180,32 @@ export const CircularDraggableSlider = forwardRef<
               ],
             },
           ]}>
-          <View
-            style={{
-              position: 'absolute',
-              top: -maxLineHeight / 2,
-              zIndex: 10,
-              height: maxLineHeight * 1.2,
-              width: lineWidth * 2,
-              backgroundColor: indicatorColor,
-            }}
-          />
           <Animated.View pointerEvents="none">
             {new Array(linesAmount).fill(0).map((_, index) => {
+              // Determine line type based on position
               const isBigLine = index % bigLineIndexOffset === 0;
-              const height = isBigLine ? maxLineHeight : minLineHeight;
-              const color = isBigLine ? bigLineColor : lineColor;
+
+              // Calculate the midpoint between consecutive big lines
+              const midpointOffset = bigLineIndexOffset / 2;
+              const isMediumLine = !isBigLine && index % bigLineIndexOffset === midpointOffset;
+
+              // Calculate medium line height as the average of max and min
+              const mediumLineHeight = (maxLineHeight + minLineHeight) / 2;
+
+              // Determine height based on line type
+              let height: number;
+              let color: string;
+
+              if (isBigLine) {
+                height = maxLineHeight;
+                color = bigLineColor;
+              } else if (isMediumLine) {
+                height = mediumLineHeight;
+                color = mediumLineColor;
+              } else {
+                height = minLineHeight;
+                color = lineColor;
+              }
 
               return (
                 <LineTime
@@ -231,6 +245,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'absolute',
     width: '100%',
+    transform: [
+      {
+        rotate: '90deg',
+      },
+    ],
   },
   timer: {
     bottom: 0,

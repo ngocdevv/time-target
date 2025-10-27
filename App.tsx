@@ -26,25 +26,15 @@ export default function App() {
               style={{
                 marginBottom: 256,
               }}>
-              {/* <AnimatedCount
-          count={animatedNumber}
-          maxDigits={5}
-          textDigitWidth={68}
-          textDigitHeight={120}
-          fontSize={100}
-          color="#fff"
-          gradientAccentColor="#000"
-        /> */}
             </View>
             <CircularDraggableSlider
               ref={circularSliderRef}
               bigLineIndexOffset={10}
               linesAmount={LinesAmount}
-              indicatorColor={'orange'}
-              maxLineHeight={40}
+              maxLineHeight={20}
               lineColor="rgba(255,255,255,0.5)"
               bigLineColor="white"
-              minLineHeight={30}
+              minLineHeight={8}
               onCompletion={async () => {
 
               }}
