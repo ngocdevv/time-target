@@ -43,30 +43,13 @@ export type DraggableSliderProps = {
 };
 
 const { height: WindowHeight } = Dimensions.get('window');
-const radius = 250;
+const radius = 200;
 
 export type CircularDraggableSliderRefType = {
   resetTimer: () => void;
   runTimer: (to: number) => void;
   stopTimer: () => void;
 };
-
-// This one was really challening :)
-// The idea is to use a custom pan gesture handler to handle the drag event and update the progress value accordingly.
-// Once the user drags, the progress gets converted to radians and then to seconds.
-
-// To map the translation to an angle I've used the interpolate function.
-// Here's the idea.
-// Let's imagine that you don't see a circle but a straight line | | | | | | | | | | |
-// What's the distance between two ticks? It's the straight line length divided by the amount of ticks.
-// But actually the straight line length is our diameter of the circle, so it's 2 * PI * radius.
-// const distanceBetweenTwoTicks = diameter / linesAmount; -> 2 * PI * radius / linesAmount
-
-// Once we have this knowledge we can remap the progress value to radians.
-// ->
-// inputRange: [0, listWidth]
-// outputRange: [0, 2 * Math.PI]
-// I have added an offset in the actual code to rotate the circle by 90 degrees at the very beginning
 
 export const CircularDraggableSlider = forwardRef<
   CircularDraggableSliderRefType,
@@ -168,14 +151,12 @@ export const CircularDraggableSlider = forwardRef<
           pointerEvents="none"
           style={[
             {
-              position: 'absolute',
-              justifyContent: 'center',
-              alignItems: 'center',
               height: radius * 2,
               width: radius * 2,
+              right: 50,
               transform: [
                 {
-                  translateY: WindowHeight / 2 - radius / 2,
+                  translateY: WindowHeight / 2 - radius - 36,
                 },
               ],
             },
@@ -240,16 +221,7 @@ export const CircularDraggableSlider = forwardRef<
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    height: '100%',
-    justifyContent: 'center',
-    position: 'absolute',
     width: '100%',
-    transform: [
-      {
-        rotate: '90deg',
-      },
-    ],
   },
   timer: {
     bottom: 0,
