@@ -1,29 +1,12 @@
-import { StyleSheet, View } from 'react-native';
-
+import { useFonts } from "expo-font";
 import { useRef } from 'react';
-
+import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDerivedValue, useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomTab } from './src/components/bottom-tab';
 import { CircularDraggableSlider, CircularDraggableSliderRefType } from './src/components/circle-time';
 import { TimeRange } from './src/components/time-range';
-
-// Handle timezone offset to ensure correct time display
-// Note: This is a simple implementation. For production, consider using a proper timezone library
-const TimezoneOffsetMs = -new Date().getTimezoneOffset() * 60000;
-
-/**
- * Generate an array of time slots for the time range selector
- * Creates 20 time slots starting from 13:00 with 30-minute intervals
- */
-const dates = new Array(20).fill(0).map((_, index) => {
-  const hour = Math.floor(index / 2) + 13;
-  const minutes = index % 2 === 0 ? 0 : 30;
-  return new Date(2025, 0, 1, hour, minutes);
-});
-
-
 
 const LinesAmount = 200;
 
@@ -32,60 +15,68 @@ export default function App() {
   const previousTick = useSharedValue(0);
 
   const circularSliderRef = useRef<CircularDraggableSliderRefType>(null);
-  const date = useSharedValue(dates[0].getTime());
-
-  const clockDate = useDerivedValue(() => {
-    'worklet';
-    return date.value + TimezoneOffsetMs;
-  });
+  const selectedDuration = useSharedValue(1);
 
   return (
     <SafeAreaProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.container}>
-            <CircularDraggableSlider
-              ref={circularSliderRef}
-              bigLineIndexOffset={10}
-              linesAmount={LinesAmount}
-              maxLineHeight={20}
-              lineColor="rgba(255,255,255,0.5)"
-              bigLineColor="white"
-              minLineHeight={8}
-              onCompletion={async () => {
+      <FontsProvider>
+        <GestureHandlerRootView style={styles.fill}>
+          <View style={{ flex: 1 }}>
+            <View style={styles.container}>
+              <CircularDraggableSlider
+                ref={circularSliderRef}
+                bigLineIndexOffset={10}
+                linesAmount={LinesAmount}
+                maxLineHeight={20}
+                minLineHeight={8}
+                onProgressChange={sliderProgress => {
+                  'worklet';
+                  if (sliderProgress < 0) {
+                    return;
+                  }
 
-              }}
-              onProgressChange={sliderProgress => {
-                'worklet';
-                if (sliderProgress < 0) {
-                  return;
-                }
+                  // Only trigger haptics when crossing a line (when tick value changes)
+                  if (sliderProgress !== previousTick.value) {
+                    previousTick.value = sliderProgress;
+                  }
 
-                // Only trigger haptics when crossing a line (when tick value changes)
-                if (sliderProgress !== previousTick.value) {
-                  previousTick.value = sliderProgress;
-                }
-
-                // Bind the progress value to the animated number
-                animatedNumber.value = sliderProgress;
-              }}
-            />
-            <TimeRange
-              dates={dates}
-              onDateChange={updatedDate => {
-                'worklet';
-                date.value = updatedDate;
-              }}
-            />
+                  // Bind the progress value to the animated number
+                  animatedNumber.value = sliderProgress;
+                }}
+              />
+              <TimeRange
+                onDurationChange={durationHours => {
+                  'worklet';
+                  selectedDuration.value = durationHours;
+                }}
+              />
+            </View>
+            <BottomTab />
           </View>
-          <BottomTab />
-        </View>
-      </GestureHandlerRootView>
+        </GestureHandlerRootView>
+      </FontsProvider>
     </SafeAreaProvider>
   );
 };
 
+
+const FontsProvider = ({ children }: { children: React.ReactNode }) => {
+
+  const [fontsLoaded] = useFonts({
+    'SF-Pro-Rounded-Bold': require('./assets/fonts/SF-Pro-Rounded-Bold.otf'),
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+  return <>{children}</>;
+};
+
 const styles = StyleSheet.create({
+  fill: {
+    flex: 1
+  },
   button: {
     alignItems: 'center',
     aspectRatio: 1,

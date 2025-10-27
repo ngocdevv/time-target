@@ -1,6 +1,5 @@
-import { format } from 'date-fns';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useMemo } from 'react';
+import { FontAwesome } from '@expo/vector-icons';
+import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
     interpolate,
@@ -9,120 +8,114 @@ import Animated, {
 
 /**
  * Props for the TimeRange component
- * @property {Date[]} dates - Array of Date objects representing available time slots
- * @property {(dateMs: number) => void} onDateChange - Callback function called when time selection changes
+ * @property {(durationHours: number) => void} onDurationChange - Callback triggered when the selected duration changes
  */
-type TimePickerProps = {
-  dates: Date[];
-  onDateChange?: (dateMs: number) => void;
+type TimeRangeProps = {
+    onDurationChange?: (durationHours: number) => void;
 };
 
-const ITEM_HEIGHT = 30; // Height of each time item in pixels
-const TimeRangeHeight = ITEM_HEIGHT * 4; // Total height of visible time range
+const SCALE_FACTOR = 2.5;
+const ITEM_HEIGHT = 30 * SCALE_FACTOR; // Height of each time item in pixels
+const TimeRangeHeight = ITEM_HEIGHT; // Visible area shows a single time option
+const ArrowWrapperHeight = 24 * SCALE_FACTOR;
+const ArrowIconSize = 10 * SCALE_FACTOR;
+const LabelFontSize = 28 * SCALE_FACTOR;
+const ListWidth = 100 * SCALE_FACTOR;
+const ContainerHeight = TimeRangeHeight + ArrowWrapperHeight * 2; // Extra space for arrow indicators
+const DurationOptions = Array.from({ length: 10 }, (_, index) => index + 1);
+const DurationSnapOffsets = DurationOptions.map((_, index) => index * ITEM_HEIGHT);
+const DurationLabels = DurationOptions.map(hours => `${hours} hr`);
 
-export const TimeRange: React.FC<TimePickerProps> = ({
-  dates,
-  onDateChange,
+export const TimeRange: React.FC<TimeRangeProps> = ({
+    onDurationChange,
 }) => {
-  const datesMs = useMemo(() => dates.map(date => date.getTime()), [dates]);
+    /**
+     * Renders individual time items in the list
+     * @param {Object} param0 - Item data and index
+     * @returns {JSX.Element} Rendered time item
+     */
+    const renderItem = useCallback(
+        ({ item, index }: { item: string; index: number }) => (
+            <View key={index} style={styles.timeItem}>
+                <Text style={styles.timeText}>{item}</Text>
+            </View>
+        ),
+        [],
+    );
 
-  const formattedDates = useMemo(
-    () => dates.map(date => format(date, 'h:mm aaa').toLowerCase()),
-    [dates],
-  );
+    /**
+     * Handles scroll events and interpolates the selected time
+     * Uses Reanimated worklet for smooth performance
+     */
+    const onScroll = useAnimatedScrollHandler({
+        onScroll: event => {
+            const { contentOffset } = event;
+            const interpolatedDuration = interpolate(
+                contentOffset.y,
+                DurationSnapOffsets,
+                DurationOptions,
+            );
+            const clampedDuration = Math.min(
+                DurationOptions[DurationOptions.length - 1],
+                Math.max(DurationOptions[0], Math.round(interpolatedDuration)),
+            );
+            onDurationChange?.(clampedDuration);
+        },
+    });
 
-  /**
-   * Renders individual time items in the list
-   * @param {Object} param0 - Item data and index
-   * @returns {JSX.Element} Rendered time item
-   */
-  const renderItem = useCallback(
-    ({ item, index }: { item: string; index: number }) => (
-      <View key={index} style={styles.timeItem}>
-        <Text style={styles.timeText}>{item}</Text>
-      </View>
-    ),
-    [],
-  );
-
-  /**
-   * Handles scroll events and interpolates the selected time
-   * Uses Reanimated worklet for smooth performance
-   */
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: event => {
-      const { contentOffset } = event;
-      const interpolatedDate = interpolate(
-        contentOffset.y,
-        datesMs.map((_, i) => i * ITEM_HEIGHT),
-        datesMs,
-      );
-      onDateChange?.(interpolatedDate);
-    },
-  });
-
-  return (
-    <View style={styles.container}>
-      <Animated.FlatList
-        onScroll={onScroll}
-        decelerationRate="fast"
-        snapToAlignment="center"
-        snapToOffsets={datesMs.map((_, i) => i * ITEM_HEIGHT)}
-        contentContainerStyle={styles.scrollViewContent}
-        showsVerticalScrollIndicator={false}
-        style={{ width: 100 }}
-        data={formattedDates}
-        renderItem={renderItem}
-        disableIntervalMomentum
-      />
-
-      <LinearGradient
-        colors={['#111111', '#11111100']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 0.5 }}
-        style={[styles.gradient, styles.bottomGradient]}
-      />
-      <LinearGradient
-        colors={['#11111100', '#111111']}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 0, y: 1 }}
-        style={[styles.gradient, styles.topGradient]}
-      />
-    </View>
-  );
+    return (
+        <View style={styles.container}>
+            <View style={styles.arrowWrapper}>
+                <FontAwesome name="chevron-up" size={ArrowIconSize} color="#ffffff" />
+            </View>
+            <Animated.FlatList
+                onScroll={onScroll}
+                decelerationRate="fast"
+                snapToAlignment="center"
+                snapToOffsets={DurationSnapOffsets}
+                contentContainerStyle={styles.scrollViewContent}
+                showsVerticalScrollIndicator={false}
+                style={styles.list}
+                data={DurationLabels}
+                renderItem={renderItem}
+                disableIntervalMomentum
+            />
+            <View style={styles.arrowWrapper}>
+                <FontAwesome name="chevron-down" size={ArrowIconSize} color="#ffffff" />
+            </View>
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  bottomGradient: {
-    bottom: 0,
-  },
-  container: {
-    height: TimeRangeHeight,
-    position: "absolute",
-    right: 0
-  },
-  gradient: {
-    height: TimeRangeHeight,
-    left: 0,
-    pointerEvents: 'none',
-    position: 'absolute',
-    right: 0,
-    zIndex: 100,
-  },
-  scrollViewContent: {
-    paddingVertical: TimeRangeHeight / 2 - ITEM_HEIGHT / 2,
-  },
-  timeItem: {
-    alignItems: 'center',
-    height: ITEM_HEIGHT,
-    justifyContent: 'center',
-  },
-  timeText: {
-    color: '#d8d8d8',
-    fontFamily: 'Honk-Regular',
-    fontSize: 20,
-  },
-  topGradient: {
-    top: 0,
-  },
+    container: {
+        height: ContainerHeight,
+        position: "absolute",
+        right: 0,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    arrowWrapper: {
+        alignItems: 'center',
+        height: ArrowWrapperHeight,
+        justifyContent: 'center',
+    },
+    list: {
+        width: ListWidth,
+        flexGrow: 0,
+        height: TimeRangeHeight,
+    },
+    scrollViewContent: {
+        paddingVertical: TimeRangeHeight / 2 - ITEM_HEIGHT / 2,
+    },
+    timeItem: {
+        alignItems: 'center',
+        height: ITEM_HEIGHT,
+        justifyContent: 'center',
+    },
+    timeText: {
+        color: '#d8d8d8',
+        fontSize: LabelFontSize,
+        fontFamily: 'SF-Pro-Rounded-Bold',
+    },
 });
