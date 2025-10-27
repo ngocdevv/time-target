@@ -91,9 +91,11 @@ const styles = StyleSheet.create({
     container: {
         height: ContainerHeight,
         position: "absolute",
+        width: ListWidth - 20,
         right: 0,
         justifyContent: 'space-between',
-        alignItems: 'center',
+        // alignItems: 'center',
+        // backgroundColor: "red"
     },
     arrowWrapper: {
         alignItems: 'center',
